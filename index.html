@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>BODY QUIZ · 신경계는 이걸로 종료</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: "Courier New", Consolas, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .game-wrapper {
+      width: 100%;
+      max-width: 900px;
+      padding: 12px;
+    }
+
+    /* 상단 바 */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stat {
+      color: #9ca3af;
+    }
+
+    .stat strong {
+      color: #fff;
+    }
+
+    .combo {
+      font-size: 18px;
+      font-weight: bold;
+      color: #facc15;
+      min-width: 100px;
+      text-align: right;
+      text-shadow: 0 0 8px #facc15;
+      letter-spacing: 0.08em;
+    }
+
+    .combo.pop {
+      animation: combo-pop 0.35s ease;
+    }
+
+    @keyframes combo-pop {
+      0%   { transform: scale(1) rotate(0deg);   text-shadow: 0 0 6px #facc15; }
+      40%  { transform: scale(1.4) rotate(-3deg); text-shadow: 0 0 16px #fde047; }
+      70%  { transform: scale(1.25) rotate(3deg); text-shadow: 0 0 12px #facc15; }
+      100% { transform: scale(1) rotate(0deg);   text-shadow: 0 0 6px #facc15; }
+    }
+
+    /* 태그 필터 */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+
+    .filter-label {
+      white-space: nowrap;
+    }
+
+    .filter-select {
+      font-size: 11px;
+      font-family: inherit;
+      padding: 2px 6px;
+      background: #000;
+      color: #e5e7eb;
+      border: 1px solid #4b5563;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: #facc15;
+    }
+
+    /* 메인 레이아웃 */
+    .layout {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      border: 2px solid #fff;
+      padding: 10px;
+      background: #000;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .card-title {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .repeat-banner {
+      font-size: 11px;
+      color: #fb7185;
+      margin-bottom: 4px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .repeat-banner.show {
+      opacity: 1;
+      animation: repeat-blink 0.9s ease-in-out 2;
+    }
+
+    @keyframes repeat-blink {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      50%  { opacity: 0.4; }
+      75%  { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
+
+    .question-text {
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      min-height: 70px;
+    }
+
+    .tag {
+      font-size: 11px;
+      color: #facc15;
+      margin-bottom: 4px;
+    }
+
+    .choices {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .choice-btn {
+      border: 2px solid #fff;
+      background: #000;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 6px 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.1s ease, color 0.1s ease, transform 0.05s ease, border-color 0.1s ease;
+    }
+
+    .choice-btn:hover {
+      background: #fff;
+      color: #000;
+      transform: translateY(-1px);
+    }
+
+    .choice-btn.selected {
+      border-color: #facc15;
+      box-shadow: 0 0 10px #facc15;
+    }
+
+    .choice-btn.correct {
+      background: #00c853;
+      color: #000;
+      border-color: #00c853;
+    }
+
+    .choice-btn.wrong {
+      background: #ff1744;
+      color: #000;
+      border-color: #ff1744;
+      opacity: 0.9;
+    }
+
+    .bottom-row {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9ca3af;
+      align-items: center;
+    }
+
+    .btn-small {
+      border: 1px solid #fff;
+      background: #000;
+      color: #fff;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .btn-small:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .btn-small.disabled {
+      opacity: 0.35;
+      cursor: default;
+      border-color: #4b5563;
+      color: #6b7280;
+      background: #000;
+    }
+
+    /* 오답노트 */
+    .wrong-list {
+      margin-top: 4px;
+      font-size: 11px;
+      color: #e5e7eb;
+      flex: 1;
+      overflow-y: auto;
+      cursor: default;
+    }
+
+    .wrong-item {
+      border-top: 1px solid #4b5563;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .wrong-item:first-child {
+      border-top: none;
+    }
+
+    .wrong-item:hover {
+      background: #111;
+    }
+
+    .wrong-tag {
+      color: #f97316;
+      font-size: 10px;
+    }
+
+    .wrong-text {
+      margin-top: 2px;
+    }
+
+    .wrong-count {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    /* 모달(팝업 해설) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal {
+      border: 2px solid #fff;
+      background: #020617;
+      max-width: 640px;
+      width: 90%;
+      padding: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .modal-title.correct {
+      color: #4ade80;
+      text-shadow: 0 0 10px #22c55e;
+    }
+
+    .modal-title.wrong {
+      color: #fb7185;
+      text-shadow: 0 0 10px #f97373;
+    }
+
+    .modal-body {
+      font-size: 13px;
+      line-height: 1.7;
+      max-height: 260px;
+      overflow-y: auto;
+      color: #e5e7eb;
+      white-space: pre-wrap;
+    }
+
+    .modal-section {
+      margin-bottom: 10px;
+    }
+
+    .modal-section-head {
+      font-size: 12px;
+      color: #fbbf24;
+      margin-bottom: 2px;
+    }
+
+    .modal-section-text {
+      font-size: 13px;
+    }
+
+    .modal-section-exp {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .modal-footer {
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    .modal-close {
+      border: 1px solid #fff;
+      background: #000;
+      color: #fff;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    /* 카드 이펙트 */
+    #card-main.shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+      100% { transform: translateX(0); }
+    }
+
+    #card-main.correct-flash {
+      animation: correct-flash 0.5s ease;
+    }
+
+    @keyframes correct-flash {
+      0% {
+        box-shadow: 0 0 0px rgba(250, 204, 21, 0);
+        border-color: #fff;
+      }
+      50% {
+        box-shadow: 0 0 18px rgba(250, 204, 21, 0.9);
+        border-color: #facc15;
+        transform: scale(1.01);
+      }
+      100% {
+        box-shadow: 0 0 0px rgba(250, 204, 21, 0);
+        border-color: #fff;
+        transform: scale(1);
+      }
+    }
+
+    /* 컷씬 느낌 전환 */
+    #card-main.scene-transition {
+      animation: scene-in 0.35s ease;
+    }
+
+    @keyframes scene-in {
+      0%   { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 720px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .game-wrapper {
+        padding: 8px;
+      }
+      .modal-body {
+        max-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <div class="top-bar">
+      <div class="title">BODY QUIZ · 신경계 마스터</div>
+      <div class="stats">
+        <div class="stat">전체 문항: <strong><span id="stat-total-questions">0</span></strong></div>
+        <div class="stat">풀이 수: <strong><span id="stat-count">0</span></strong></div>
+        <div class="stat">정답: <strong><span id="stat-correct">0</span></strong></div>
+        <div class="stat">정답률: <strong><span id="stat-accuracy">0</span>%</strong></div>
+        <div class="combo" id="combo-display">COMBO x1</div>
+      </div>
+    </div>
+
+    <!-- 태그 필터 -->
+    <div class="filter-bar">
+      <span class="filter-label">태그 필터:</span>
+      <select id="tag-filter-select" class="filter-select">
+        <option value="ALL">전체 태그</option>
+        <!-- JS에서 자동으로 채움 -->
+      </select>
+    </div>
+
+    <div class="layout">
+      <!-- 왼쪽: 문제 박스 -->
+      <div class="card" id="card-main">
+        <div class="card-title" id="q-id">문제 -</div>
+        <div class="repeat-banner" id="repeat-banner">⚠ 이전에 틀렸던 문제가 재등장했습니다.</div>
+        <div class="tag" id="q-tag"></div>
+        <div class="question-text" id="q-text"></div>
+        <div class="choices" id="choices"></div>
+        <div style="min-height:14px;font-size:11px;color:#9ca3af;margin-top:6px;" id="feedback-inline"></div>
+        <div class="bottom-row">
+          <span id="tip">TIP: 파이팅.</span>
+          <div>
+            <button class="btn-small" id="btn-submit">제출</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오른쪽: 오답노트 -->
+      <div class="card">
+        <div class="card-title">오답노트 · 틀린 문제 목록</div>
+        <div class="wrong-list" id="wrong-list">
+          <div style="color:#6b7280;font-size:11px;">
+            아직 틀린 문제가 없습니다. 😼
+          </div>
+        </div>
+        <div class="bottom-row">
+          <span>※ 오답은 다시 랜덤 출제되며, 맞추면 목록에서 사라집니다.</span>
+          <button class="btn-small" id="btn-clear-wrong">오답노트 초기화</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 해설 / 완료 팝업 모달 -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-title" id="modal-title">해설</div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="modal-close" id="modal-close">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 문제 템플릿 JS (네가 수정할 파일) -->
+  <script src="questions.js"></script>
+  <!-- 메인 로직 JS -->
+  <script src="main.js"></script>
+</body>
+</html>
