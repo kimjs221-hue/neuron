@@ -230,7 +230,7 @@ function showExplanationFromWrong(index) {
   const q = QUESTIONS_DATA[index];
   if (!q) return;
 
-  const correctIdx = q.correctIndex ?? 0;
+  const correctIdx = q.correct ?? 0;
   const correctChoice = (q.choices || [])[correctIdx];
 
   const sections = [];
@@ -290,9 +290,9 @@ function showFinishModal() {
       heading: "🎉 모든 문제를 다 풀었습니다!",
       text: "",
       explanation: "이번 라운드에서 준비된 모든 문항을 한 번 이상 풀었고,\n" +
-                   "오답노트도 모두 정리되었습니다.\n" +
-                   "이제 재도전으로 타임어택 느낌으로 다시 풀어도 좋고,\n" +
-                   "다른 과목으로 넘어가도 좋습니다.",
+        "오답노트도 모두 정리되었습니다.\n" +
+        "이제 재도전으로 타임어택 느낌으로 다시 풀어도 좋고,\n" +
+        "다른 과목으로 넘어가도 좋습니다.",
     }
   ];
 
@@ -468,7 +468,7 @@ function evaluateChoice(displayIdx) {
   if (!q) return;
 
   const mapping = state.currentChoiceOrder;
-  const correctOrigIdx = q.correctIndex ?? 0;
+  const correctOrigIdx = q.correct ?? 0;
   const chosenOrigIdx = mapping[displayIdx];
 
   const buttons = document.querySelectorAll(".choice-btn");
